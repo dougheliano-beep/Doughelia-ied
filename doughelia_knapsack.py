@@ -79,13 +79,11 @@ class DougheliaKnapsackSolver:
             return
         if self.__poda_bound(idx, peso_restante, valor_actual) <= (self._mejor_valor or 0):
             return
-        # Tomar
         if self.pesos[idx] <= peso_restante:
             seleccion.append(idx)
             self.__resolver(idx + 1, peso_restante - self.pesos[idx],
                            valor_actual + self.valores[idx], seleccion)
             seleccion.pop()
-        # No tomar
         self.__resolver(idx + 1, peso_restante, valor_actual, seleccion)
 
     def _payload(self):
@@ -114,3 +112,16 @@ class DougheliaKnapsackSolver:
         print(f"\n🔐 Hash: {h}")
         print(f"🖋️  Firma: {'SI' if f else 'NO (modo público)'}")
         print("=" * 65)
+
+
+if __name__ == "__main__":
+    print("--- Panel de Control Doughelia IED — Demo Pública (Mochila 0/1) ---")
+    try:
+        pesos = [2, 3, 4, 5]
+        valores = [3, 4, 5, 6]
+        cap = 5
+        print(f"Ejemplo: pesos={pesos}, valores={valores}, capacidad={cap}")
+        s = DougheliaKnapsackSolver(pesos, valores, cap)
+        s.ejecutar_analisis()
+    except (ValueError, TypeError) as e:
+        print(f"❌ {e}")
