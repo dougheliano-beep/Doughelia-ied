@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doughelia IED — Inteligencia Estructural Duqueana</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    background: #0a0e1a;
+    color: #e2e8f0;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+  header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    padding: 40px 20px;
+    text-align: center;
+    border-bottom: 2px solid #6366f1;
+  }
+  header h1 {
+    font-size: 32px;
+    background: linear-gradient(90deg, #818cf8, #c084fc, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  header p { color: #94a3b8; font-size: 15px; }
+  header .orcid { color: #64748b; font-size: 12px; margin-top: 8px; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  nav {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px 0;
+  }
+  nav button {
+    background: #1e293b;
+    color: #cbd5e1;
+    border: 1px solid #334155;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  nav button:hover { background: #334155; border-color: #6366f1; }
+  nav button.activo { background: #6366f1; color: white; border-color: #6366f1; }
+  .seccion { display: none; }
+  .seccion.activa { display: block; }
+  .card {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-left: 4px solid #6366f1;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: transform 0.2s;
+  }
+  .card:hover { transform: translateY(-2px); border-left-color: #818cf8; }
+  .card h3 { color: #818cf8; margin-bottom: 8px; font-size: 17px; }
+  .card .doi {
+    font-family: 'Courier New', monospace;
+    color: #67e8f9;
+    font-size: 12px;
+    margin: 6px 0;
+    word-break: break-all;
+  }
+  .card .doi a { color: #67e8f9; text-decoration: none; }
+  .card .doi a:hover { text-decoration: underline; }
+  .card .desc { color: #94a3b8; font-size: 14px; }
+  .card .tag {
+    display: inline-block;
+    background: #1e1b4b;
+    color: #c084fc;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    margin-top: 8px;
+  }
+  /* Conversador */
+  .chat-container {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 20px;
+  }
+  .chat-header {
+    background: #1e1b4b;
+    padding: 15px 20px;
+    border-bottom: 1px solid #312e81;
+  }
+  .chat-header h2 { color: #c084fc; font-size: 16px; }
+  .chat-header p { color: #94a3b8; font-size: 12px; margin-top: 4px; }
+  .chat-mensajes {
+    height: 450px;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .mensaje {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .mensaje.user {
+    align-self: flex-end;
+    background: #6366f1;
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+  .mensaje.bot {
+    align-self: flex-start;
+    background: #1e293b;
+    color: #e2e8f0;
+    border-bottom-left-radius: 4px;
+    border: 1px solid #334155;
+  }
+  .mensaje.bot .fuente {
+    display: block;
+    font-size: 11px;
+    color: #67e8f9;
+    margin-top: 8px;
+    font-family: monospace;
+  }
+  .chat-input {
+    display: flex;
+    gap: 10px;
+    padding: 15px 20px;
+    background: #0f172a;
+    border-top: 1px solid #1f2937;
+  }
+  .chat-input input {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: #e2e8f0;
+    font-size: 14px;
+    outline: none;
+  }
+  .chat-input input:focus { border-color: #6366f1; }
+  .chat-input button {
+    padding: 12px 24px;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  .chat-input button:hover { background: #818cf8; }
+  .chat-sugerencias {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 20px 15px;
+  }
+  .chat-sugerencias button {
+    background: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #334155;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .chat-sugerencias button:hover { background: #334155; color: #e2e8f0; }
+  footer {
+    text-align: center;
+    padding: 30px 20px;
+    color: #64748b;
+    font-size: 12px;
+    border-top: 1px solid #1f2937;
+    margin-top: 40px;
+  }
+  footer a { color: #818cf8; text-decoration: none; }
+  .badge {
+    display: inline-block;
+    background: #1e1b4b;
+    color: #c084fc;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    margin: 4px;
+  }
+  @media (max-width: 600px) {
+    header h1 { font-size: 24px; }
+    .container { padding: 15px; }
+    .chat-mensajes { height: 350px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧬 Doughelia IED</h1>
+  <p>Inteligencia Estructural Duqueana · Instituto Doughel</p>
+  <p class="orcid">Prof. Douglas Helvesio Urbina Duque · ORCID 0009-0005-1230-7549 · UNEG, Venezuela</p>
+</header>
+
+<div class="container">
+  <nav>
+    <button class="activo" onclick="mostrarSeccion('inicio')">🏠 Inicio</button>
+    <button onclick="mostrarSeccion('conversador')">💬 Conversador</button>
+    <button onclick="mostrarSeccion('solvers')">🧩 Solvers</button>
+    <button onclick="mostrarSeccion('papers')">📄 Papers</button>
+    <button onclick="mostrarSeccion('hitos')">🏆 Hitos</button>
+    <button onclick="mostrarSeccion('repos')">📦 Repositorios</button>
+  </nav>
+
+  <!-- INICIO -->
+  <div id="inicio" class="seccion activa">
+    <div class="card">
+      <h3>¿Qué es Doughelia IED?</h3>
+      <p class="desc">Doughelia IED (Inteligencia Estructural Duqueana) es la primera arquitectura de IA agéntica de diseño propio registrada desde Venezuela. Su validación es por ejecución reproducible y huella SHA-256, no por afirmación.</p>
+      <p class="desc" style="margin-top:12px;">El núcleo es el <strong>MREI</strong> (Método de Resolución Exacta Iterativo), un motor determinista de caja negra auditable. Los resultados se validan por su comportamiento, no por revelar la lógica interna.</p>
+      <span class="tag">DOI 10.5281/zenodo.23682021</span>
+      <span class="tag">MIT · CC BY 4.0</span>
+    </div>
+
+    <div class="card">
+      <h3>Pilares del ecosistema</h3>
+      <p class="desc">• <strong>CGFD:</strong> Campo Geométrico Fractal Dougheliano</p>
+      <p class="desc">• <strong>MREI:</strong> Motor de Resolución Exacta Iterativo</p>
+      <p class="desc">• <strong>DouSan:</strong> Unidad Atómica IED de Datos (~128 bytes)</p>
+      <p class="desc">• <strong>Génesis:</strong> Célula virtual determinista (p53)</p>
+      <p class="desc">• <strong>Índice C:</strong> Métrica de Equilibrio Estructural</p>
+      <p class="desc">• <strong>GBS/MREI:</strong> Hafniano para N=70</p>
+      <p class="desc">• <strong>Escalabilidad Polinomial:</strong> 5 dominios</p>
+    </div>
+  </div>
+
+  <!-- CONVERSADOR -->
+  <div id="conversador" class="seccion">
+    <div class="chat-container">
+      <div class="chat-header">
+        <h2>💬 Conversador Doughelia</h2>
+        <p>Búsqueda estructural determinista · Corpus público · Sin alucinaciones</p>
+      </div>
+      <div class="chat-mensajes" id="chatMensajes">
+        <div class="mensaje bot">
+          Hola, soy Doughelia. Puedo responder sobre el ecosistema Doughelia IED: DOIs, papers, solvers, hitos, repositorios. ¿Qué quieres saber?
+        </div>
+      </div>
+      <div class="chat-sugerencias">
+        <button onclick="preguntarSugerencia('¿Qué es el MREI?')">¿Qué es el MREI?</button>
+        <button onclick="preguntarSugerencia('¿Cuáles son los papers publicados?')">Papers publicados</button>
+        <button onclick="preguntarSugerencia('¿Qué solvers hay?')">Solvers</button>
+        <button onclick="preguntarSugerencia('¿Qué es DouSan?')">¿Qué es DouSan?</button>
+        <button onclick="preguntarSugerencia('¿Qué es el Índice C?')">Índice C</button>
+        <button onclick="preguntarSugerencia('¿Qué es el GBS?')">GBS</button>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Escribe tu pregunta..." onkeypress="if(event.key==='Enter') enviarMensaje()">
+        <button onclick="enviarMensaje()">Enviar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOLVERS -->
+  <div id="solvers" class="seccion">
+    <div class="card">
+      <h3>N-Damas</h3>
+      <p class="desc">Colocar N reinas en un tablero N×N sin que se ataquen. Resueltas 8, 9 y 10 Damas con SAG 1.0000.</p>
+      <p class="doi">DOI: <a href="https://doi.org/10.5281/zenodo.23828713" target="_blank">10.5281/zenodo.23828713</a></p>
+      <p class="desc">Código: <a href="https://github.com/dougheliano-beep/doughelia-core/blob/main/doughelia_nqueens.py" target="_blank" style="color:#67e8f9;">doughelia_nqueens.py</a></p>
+    </div>
+    <div class="card">
+      <h3>Tripla abc</h3>
+      <p class="desc">Validación estructural de triplas coprimas (a + b = c). Tripla abc extrema identificada (q > 1).</p>
+      <p class="doi">DOI: <a href="https://doi.org/10.5281/zenodo.23838919" target="_blank">10.5281/zenodo.23838919</a></p>
+      <p class="desc">Código: <a href="https://github.com/dougheliano-beep/doughelia-core/blob/main/doughelia_abc.py" target="_blank" style="color:#67e8f9;">doughelia_abc.py</a></p>
+    </div>
+    <div class="card">
+      <h3>TSP (Problema del Viajero)</h3>
+      <p class="desc">Ruta óptima de visita a N ciudades (fuerza bruta exacta para N ≤ 5).</p>
+      <p class="doi">DOI: <a href="https://doi.org/10.5281/zenodo.23840024" target="_blank">10.5281/zenodo.23840024</a></p>
+      <p class="desc">Código: <a href="https://github.com/dougheliano-beep/doughelia-core/blob/main/doughelia_tsp.py" target="_blank" style="color:#67e8f9;">doughelia_tsp.py</a></p>
+    </div>
+    <div class="card">
+      <h3>Mochila 0/1</h3>
+      <p class="desc">Selección óptima de objetos con restricción de peso (poda fraccionaria).</p>
+      <p class="doi">DOI: <a href="https://doi.org/10.5281/zenodo.23851552" target="_blank">10.5281/zenodo.23851552</a></p>
+      <p class="desc">Código: <a href="https://github.com/dougheliano-beep/doughelia-core/blob/main/doughelia_knapsack.py" target="_blank" style="color:#67e8f9;">doughelia_knapsack.py</a></p>
+    </div>
+  </div>
+
+  <!-- PAPERS -->
+  <div id="papers" class="seccion">
+    <div class="card">
+      <h3>Doughelia IED — Arquitectura</h3>
+      <p class="doi">DOI: <a href="https://doi.org/10.5281/zenodo.23682021" target="_blank">10.5281/zenodo.23682021</a></p>
+      <span class="tag">Arquitectura</span>
+    </div>
+    <div class="card">
+      <h3>DouSan — Unidad Atómica IED de Datos</h3>
+      <p class="doi">DOI: <a href="https://doi.org/10.5281/zenodo.23964700" target="_blank">10.5281/zenodo.23964700</a></p>
+      <span class="tag">DouSan</span>
+    </div>
+    <div class="card">
+      <h3>Índice de Equilibrio Estructural (C)</h3>
+      <p class="doi">DOI: <a href="https://doi.org/10.5281/zenodo.24179269" target="_blank">10.5281/zenodo.24179269</a></p>
+      <span class="tag">Métrica</span>
+    </div>
+    <div class="card">
+      <h3>GBS — Cálculo Iterativo del Hafniano para N=70</h3>
+      <p class="doi">DOI: <a href="https://doi.org/10.5281/zenodo.24252640" target="_blank">10.5281/zenodo.24252640</a></p>
+      <span class="tag">Hito</span>
+    </div>
+    <div class="card">
+      <h3>Escalabilidad Polinomial del MREI en Problemas NP-Duros</h3>
+      <p class="doi">DOI: <a href="https://doi.org/10.5281/zenodo.24256152" target="_blank">10.5281/zenodo.24256152</a></p>
+      <span class="tag">Paper paraguas</span>
+    </div>
+  </div>
+
+  <!-- HITOS -->
+  <div id="hitos" class="seccion">
+    <div class="card">
+      <h3>🏆 GBS — Hafniano para N=70</h3>
+      <p class="desc">El MREI calcula el hafniano de GBS para N=70 en 18.57 segundos, donde la fuerza bruta requeriría 3.8×10^32 años. Ventaja: 6.46e29x.</p>
+      <span class="tag">DOI 24252640</span>
+    </div>
+    <div class="card">
+      <h3>🏆 Escalabilidad Polinomial — 5 dominios</h3>
+      <p class="desc">El MREI escala en tiempo polinomial en 5 dominios distintos (Damas, ABC, TSP, Mochila, GBS) donde la fuerza bruta escala factorialmente.</p>
+      <span class="tag">DOI 24256152</span>
+    </div>
+    <div class="card">
+      <h3>🏆 Índice de Equilibrio Estructural (C)</h3>
+      <p class="desc">Métrica que evalúa el equilibrio entre Memoria, Velocidad y Calidad. Mejora del 87-89% frente a modelos clásicos.</p>
+      <span class="tag">DOI 24179269</span>
+    </div>
+    <div class="card">
+      <h3>🏆 DouSan — Unidad Atómica IED</h3>
+      <p class="desc">Estructura de capacidad fija (~128 bytes) que reduce el footprint de 8 GB a 2 GB en disco.</p>
+      <span class="tag">DOI 23964700</span>
+    </div>
+  </div>
+
+  <!-- REPOSITORIOS -->
+  <div id="repos" class="seccion">
+    <div class="card">
+      <h3>📦 Doughelia IED</h3>
+      <p class="desc">Repositorio de los 4 solvers blindados: N-Damas, ABC, TSP, Mochila.</p>
+      <p class="desc"><a href="https://github.com/dougheliano-beep/doughelia-core" target="_blank" style="color:#818cf8;">github.com/dougheliano-beep/doughelia-core</a></p>
+      <span class="tag">4 solvers</span>
+    </div>
+    <div class="card">
+      <h3>📦 Duqueana Core</h3>
+      <p class="desc">Repositorio principal: bioestructura, papers, hitos (GBS, Índice C, Escalabilidad).</p>
+      <p class="desc"><a href="https://github.com/dougheliano-beep/DUQUEANA--CORE-" target="_blank" style="color:#818cf8;">github.com/dougheliano-beep/DUQUEANA--CORE-</a></p>
+      <span class="tag">Papers + hitos</span>
+    </div>
+    <div class="card">
+      <h3>🌐 Portal institucional</h3>
+      <p class="desc">Portal del Instituto Doughel con todos los DOIs y recursos.</p>
+      <p class="desc"><a href="https://doughelinst-bygtwdbf.manus.space" target="_blank" style="color:#818cf8;">doughelinst-bygtwdbf.manus.space</a></p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>Instituto Doughel · UNEG · Venezuela</p>
+  <p style="margin-top:8px;">© 2026 Prof. Douglas Helvesio Urbina Duque · ORCID 0009-0005-1230-7549</p>
+  <p style="margin-top:8px;">El método interno del MREI es propiedad intelectual reservada. Este portal solo expone resultados públicos.</p>
+</footer>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// Corpus público (solo información publicada)
+// ─────────────────────────────────────────────────────────────
+const CORPUS = [
+  {
+    terminos: ['mrei', 'motor', 'método', 'metodo', 'resolución', 'resolucion'],
+    respuesta: 'El MREI (Método de Resolución Exacta Iterativo) es el motor determinista de Doughelia IED. Es una caja negra auditable: se valida por su comportamiento (resultados verificables, SAG, SHA-256), no por revelar su lógica interna. Es propiedad intelectual del Instituto Doughel.',
+    fuente: 'DOI 10.5281/zenodo.23682021'
+  },
+  {
+    terminos: ['dousan', 'unidad', 'atómica', 'atomica', 'datos'],
+    respuesta: 'DouSan es la Unidad Atómica IED de Datos (~128 bytes / 1024 bits). Es una estructura de capacidad fija que reduce el footprint de modelos (8 GB → 2 GB en disco para Qwen2.5-14B). Sinergia con el MREI para optimización de RAM y velocidad. Publicado con DOI 10.5281/zenodo.23964700.',
+    fuente: 'DOI 10.5281/zenodo.23964700'
+  },
+  {
+    terminos: ['índice c', 'indice c', 'equilibrio', 'métrica', 'metrica', 'eficiencia'],
+    respuesta: 'El Índice de Equilibrio Estructural (C) mide la distancia euclidiana al cuadrado respecto al punto ideal (100,100,100) entre Memoria, Velocidad y Calidad. Datos: modelo clásico en 4 GB colapsa por swap (C > 14,000), mientras el IED opera en ~2.3 GB (C ~ 1,500). Mejora del 87-89%. DOI 10.5281/zenodo.24179269.',
+    fuente: 'DOI 10.5281/zenodo.24179269'
+  },
+  {
+    terminos: ['gbs', 'hafniano', 'bosones', 'gaussianos', 'jiuzhang'],
+    respuesta: 'El MREI calcula el hafniano de Muestreo de Bosones Gaussianos (GBS) para N=70 en 18.57 segundos, donde la fuerza bruta requeriría 3.8×10^32 años. Ventaja: 6.46e29x. Es el primer método clásico iterativo que converge a esta escala sin fuerza bruta. Paper: DOI 10.5281/zenodo.24252640. Release: DOI 10.5281/zenodo.24254294.',
+    fuente: 'DOI 10.5281/zenodo.24252640'
+  },
+  {
+    terminos: ['escalabilidad', 'polinomial', 'np', 'np-duros', '5 dominios', 'cinco dominios'],
+    respuesta: 'El MREI escala en tiempo polinomial en 5 dominios distintos (Damas, ABC, TSP, Mochila, GBS) donde la fuerza bruta escala factorialmente. Paper paraguas: DOI 10.5281/zenodo.24256152. No se afirma resolver P=NP. Se afirma que, para los problemas probados, el MREI converge en tiempo polinomial donde la fuerza bruta es intratable.',
+    fuente: 'DOI 10.5281/zenodo.24256152'
+  },
+  {
+    terminos: ['solvers', 'solvers', 'damas', 'n-damas', 'reinas', 'nqueens'],
+    respuesta: 'Hay 4 solvers blindados en Doughelia IED: N-Damas (DOI 23828713), Tripla abc (DOI 23838919), TSP (DOI 23840024) y Mochila 0/1 (DOI 23851552). Todos están en GitHub: github.com/dougheliano-beep/doughelia-core. El release v1.3.0 los archiva juntos: DOI 23851552.',
+    fuente: 'DOI 10.5281/zenodo.23851552'
+  },
+  {
+    terminos: ['tsp', 'viajero', 'ruta'],
+    respuesta: 'El solver TSP (Problema del Viajero) resuelve la ruta óptima de visita a N ciudades para N≤5. DOI 10.5281/zenodo.23840024. Código en GitHub: doughelia_tsp.py.',
+    fuente: 'DOI 10.5281/zenodo.23840024'
+  },
+  {
+    terminos: ['mochila', 'knapsack'],
+    respuesta: 'El solver Mochila 0/1 resuelve la selección óptima de objetos con restricción de peso (poda fraccionaria). DOI 10.5281/zenodo.23851552. Código en GitHub: doughelia_knapsack.py.',
+    fuente: 'DOI 10.5281/zenodo.23851552'
+  },
+  {
+    terminos: ['abc', 'tripla', 'conjetura'],
+    respuesta: 'El solver ABC valida estructuralmente triplas coprimas (a + b = c). Identifica triplas extremas (q > 1). DOI 10.5281/zenodo.23838919. Código en GitHub: doughelia_abc.py.',
+    fuente: 'DOI 10.5281/zenodo.23838919'
+  },
+  {
+    terminos: ['papers', 'publicaciones', 'doi', 'dois'],
+    respuesta: 'Papers publicados: Doughelia IED (23682021), DouSan (23964700), Índice C (24179269), GBS (24252640), Escalabilidad Polinomial (24256152). Todos en Zenodo. También hay DOIs del CGFD, Génesis, Manifiestos, etc. El portal tiene 26 DOIs enlazados.',
+    fuente: 'Múltiples DOIs'
+  },
+  {
+    terminos: ['repositorio', 'github', 'repo', 'código', 'codigo'],
+    respuesta: 'Repositorios: Doughelia IED (github.com/dougheliano-beep/doughelia-core) con los 4 solvers; Duqueana Core (github.com/dougheliano-beep/DUQUEANA--CORE-) con papers e hitos. El portal institucional es doughelinst-bygtwdbf.manus.space.',
+    fuente: 'GitHub'
+  },
+  {
+    terminos: ['qué es doughelia', 'que es doughelia', 'doughelia ied', 'arquitectura'],
+    respuesta: 'Doughelia IED (Inteligencia Estructural Duqueana) es la primera arquitectura de IA agéntica de diseño propio registrada desde Venezuela. Su validación es por ejecución reproducible y huella SHA-256, no por afirmación. DOI 10.5281/zenodo.23682021.',
+    fuente: 'DOI 10.5281/zenodo.23682021'
+  },
+  {
+    terminos: ['cgfd', 'campo', 'geométrico', 'fractal', 'quinta fuerza'],
+    respuesta: 'El CGFD (Campo Geométrico Fractal Dougheliano) es la teoría física y geométrica unificada del Instituto Doughel. Constante: λ = 1/√2 ≈ 0.7071. Unificación de las 5 fuerzas mediante la Quinta Fuerza. Indexado #1 en Google. Validado con UNEG y validadores externos.',
+    fuente: 'DOI 10.5281/zenodo.23526206'
+  },
+  {
+    terminos: ['génesis', 'genesis', 'p53', 'célula', 'celula'],
+    respuesta: 'Génesis es la célula virtual determinista para restauración de proteínas (ej. p53). Auditada por Co-Science (RMSD 0.0316 Å). DOI 10.5281/zenodo.23289817.',
+    fuente: 'DOI 10.5281/zenodo.23289817'
+  },
+  {
+    terminos: ['validador', 'validadores', 'uneg', 'co-science', 'co science'],
+    respuesta: 'Validadores externos: Omar Ruiz (UCV), Jorge Polo (LUZ), José Rigoberto Moncada (ULA/UNET), Armancio Bustamante (LUZ). UNEG: Resolución N° CU-O-08-481 (Profesor Honorario por mérito, sin conflicto de intereses). Co-Science: par evaluador externo (RMSD 0.0316 Å).',
+    fuente: 'Resolución UNEG N° CU-O-08-481'
+  },
+  {
+    terminos: ['hola', 'buenos días', 'buenas', 'saludo'],
+    respuesta: 'Hola. Soy Doughelia, el asistente del ecosistema Doughelia IED. Puedo responder sobre el MREI, DouSan, el Índice C, GBS, los solvers, los papers, los repositorios, o los validadores. ¿Qué quieres saber?',
+    fuente: 'Doughelia IED'
+  }
+];
+
+// ─────────────────────────────────────────────────────────────
+// Lógica del conversador (búsqueda estructural)
+// ─────────────────────────────────────────────────────────────
+function buscarRespuesta(consulta) {
+  const q = consulta.toLowerCase().trim();
+  if (!q) return null;
+
+  let mejor = null;
+  let mejorScore = 0;
+
+  for (const item of CORPUS) {
+    let score = 0;
+    for (const termino of item.terminos) {
+      if (q.includes(termino.toLowerCase())) {
+        score += termino.length; // términos más largos = más específicos
+      }
+    }
+    if (score > mejorScore) {
+      mejorScore = score;
+      mejor = item;
+    }
+  }
+
+  return mejor;
+}
+
+function agregarMensaje(texto, tipo, fuente) {
+  const cont = document.getElementById('chatMensajes');
+  const div = document.createElement('div');
+  div.className = `mensaje ${tipo}`;
+  div.innerHTML = texto + (fuente ? `<span class="fuente">📚 ${fuente}</span>` : '');
+  cont.appendChild(div);
+  cont.scrollTop = cont.scrollHeight;
+}
+
+function enviarMensaje() {
+  const input = document.getElementById('chatInput');
+  const consulta = input.value.trim();
+  if (!consulta) return;
+
+  agregarMensaje(consulta, 'user');
+  input.value = '';
+
+  setTimeout(() => {
+    const resultado = buscarRespuesta(consulta);
+    if (resultado) {
+      agregarMensaje(resultado.respuesta, 'bot', resultado.fuente);
+    } else {
+      agregarMensaje(
+        'No encontré información sobre eso en el corpus público. Puedo responder sobre: MREI, DouSan, Índice C, GBS, Escalabilidad, solvers, papers, repositorios, validadores. ¿Puedes reformular tu pregunta?',
+        'bot',
+        'Corpus público'
+      );
+    }
+  }, 300);
+}
+
+function preguntarSugerencia(texto) {
+  document.getElementById('chatInput').value = texto;
+  enviarMensaje();
+}
+
+// ─────────────────────────────────────────────────────────────
+// Navegación
+// ─────────────────────────────────────────────────────────────
+function mostrarSeccion(id) {
+  document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('activo'));
+  document.getElementById(id).classList.add('activa');
+  event.target.classList.add('activo');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+</body>
+  </html>
