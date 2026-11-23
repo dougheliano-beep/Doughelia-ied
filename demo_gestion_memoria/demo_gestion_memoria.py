@@ -21,6 +21,7 @@ Uso: python demo_gestion_memoria.py
 
 import time
 import random
+import hashlib
 from dataclasses import dataclass, field
 from typing import List, Dict
 
@@ -150,10 +151,18 @@ class IEDOrquestador:
         Selecciona las capas relevantes.
         CAJA NEGRA: la lógica interna no se revela.
         Aquí simulamos una selección (subconjunto de capas).
+
+        La simulación es aleatoria POR DISEÑO: ocupa el lugar de la lógica
+        reservada. Para que la simulación sea reproducible entre procesos
+        sembramos con un digest SHA-256 de la consulta y no con hash() de
+        Python, que está salted por proceso (PYTHONHASHSEED).
         """
         n_capas_total = self.modelo.n_capas
         n_seleccionadas = max(4, n_capas_total // 4)
-        random.seed(hash(consulta) % 10000)
+        semilla = int.from_bytes(
+            hashlib.sha256(consulta.encode("utf-8")).digest()[:4], "big"
+        )
+        random.seed(semilla)
         return sorted(random.sample(range(n_capas_total), n_seleccionadas))
 
 
